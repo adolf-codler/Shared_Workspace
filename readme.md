@@ -1,7 +1,9 @@
 # Shared Workspace
 <br>
+
 ---
 <br>
+
 ## Project Overview
 This is a serverless connectivity project between 2 browsers. They Share clipboard, a temporary text area also enable to transfer files and chat. For this I used **webRTC**
 
