@@ -568,7 +568,7 @@ function addToClipboardLog(text, direction, nameLabel) {
         const preview = text.length > 30 ? text.substring(0, 30) + "..." : text;
         const directionText = direction === 'sent' ? `You synced` : `${nameLabel} synced`;
         
-        item.innerHTML = `
+        tem.innerHTML = `
             <span class="full-text" style="display:none;"></span>
             <span class="history-item-text"><strong>${directionText}</strong>: "${preview}"</span>
             <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
@@ -584,14 +584,45 @@ function addToClipboardLog(text, direction, nameLabel) {
     }
 }
 
-// Copy full text from clipboard history items
+// Copy full text from clipboard history items (with HTTP fallback)  -- fix
 function copyClipboardHistoryItem(btnElement) {
     const parent = btnElement.closest('.clipboard-history-item');
     const fullTextSpan = parent ? parent.querySelector('.full-text') : null;
-    if (fullTextSpan) {
-        navigator.clipboard.writeText(fullTextSpan.textContent)
+    
+    if (!fullTextSpan) return;
+    
+    const textToCopy = fullTextSpan.textContent;
+
+    // If Secure context
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(textToCopy)
             .then(() => showNotification("History text copied to clipboard!", "success"))
             .catch(() => showNotification("Failed to copy. Please copy manually.", "warning"));
+    } else {
+        // Fallback for insecure contexts (HTTP local network IPs)
+        try {
+            const textArea = document.createElement("textarea");
+            textArea.value = textToCopy;
+            
+            textArea.style.position = "fixed";
+            textArea.style.left = "-999999px";
+            textArea.style.top = "-999999px";
+            document.body.appendChild(textArea);
+            
+            textArea.focus();
+            textArea.select();
+            
+            const successful = document.execCommand('copy');
+            textArea.remove();
+            
+            if (successful) {
+                showNotification("History text copied to clipboard!", "success");
+            } else {
+                showNotification("Failed to copy. Please copy manually.", "warning");
+            }
+        } catch (err) {
+            showNotification("Failed to copy. Please copy manually.", "warning");
+        }
     }
 }
 
