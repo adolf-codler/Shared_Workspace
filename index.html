@@ -298,8 +298,10 @@
             });
         }
 
+	//fix- dataChannel wasnt a global variable, its inside peers 
         function handleStagedFile(file) {
-            if (typeof sendFile === 'function' && dataChannel && dataChannel.readyState === "open") {
+	    const isConnected = Object.values(peers).some(p => p.dataChannel && p.dataChannel.readyState === "open");
+            if (typeof sendFile === 'function' && isConnected) {
                 sendFile(file);
             } else {
                 showNotification("Staging local file. Establish link to send.", "warning");
@@ -307,7 +309,7 @@
                 if (log) {
                     const empty = log.querySelector('.transfer-empty');
                     if (empty) empty.remove();
-                    log.innerHTML = `
+                    log.innerHTML += `
                         <div class="file-transfer-item">
                             <span class="file-icon">📄</span>
                             <div class="file-details">
